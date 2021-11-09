@@ -1,5 +1,4 @@
 from .code_analyzer.code_analyzer import AnalysisLevel
-from .code_analyzer.understand.understand_analyzer import *
 from .execution_record_extractor.rtp_torrent_extractor import TorrentExtractor
 from .repository_miner import FileRepositoryMiner, FunctionRepositoryMiner
 

@@ -8,6 +8,7 @@ from ..ranklib_learner import RankLibLearner
 from ..feature_extractor.feature import Feature
 from ..code_analyzer.code_analyzer import AnalysisLevel
 from ..results.results_analyzer import ResultAnalyzer
+import os
 
 
 class ExperimentsService:
@@ -171,22 +172,48 @@ class ExperimentsService:
         result_analyzer.analyze_results()
 
     @staticmethod
+    def collect_stats(results_dir):
+        results_folders = os.listdir(results_dir)
+        stats_df = pd.DataFrame()
+        # gather apfdc info from each dataset
+        all_results_df = pd.DataFrame()
+        for results_folder in results_folders:
+            folder = results_dir / results_folder
+            if os.path.isdir(folder):
+                # read apfdc values
+                results_path = folder / "results.csv"
+                results_df = pd.read_csv(results_path, usecols=['apfdc'])
+                apfdc_stats_df = results_df['apfdc'].describe()
+                # write apfdc info to dataframe
+                row = {'dataset': results_folder, 'mean_apfdc': apfdc_stats_df['mean'], 'std_apfdc': apfdc_stats_df['std'], '50%_apfdc': apfdc_stats_df['50%']}
+                stats_df = stats_df.append(row, ignore_index=True)
+                # accumulate apfdc values for all datasets
+                all_results_df = all_results_df.append(results_df, ignore_index=True)
+        # write stats for all datasets into same folder
+        all_apfdc_stats_df = all_results_df['apfdc'].describe()
+        row = {'dataset': 'ALL', 'mean_apfdc': all_apfdc_stats_df['mean'], 'std_apfdc': all_apfdc_stats_df['std'], '50%_apfdc': all_apfdc_stats_df['50%']}
+        stats_df = stats_df.append(row, ignore_index=True)
+        stats_df = stats_df[['dataset', 'mean_apfdc', 'std_apfdc', '50%_apfdc']]
+        stats_df.to_csv(results_dir / "apfdc_stats.csv", index=False)
+
+    @staticmethod
     def run_experiments(args):
         i = 0
-        while True:
+        while i < 25:
             i = i+1
             dataset_path = args.output_path / f"dataset{i}.csv"
             if not dataset_path.exists():
-                print(f"No dataset{i}.csv found in the output directory. Aborting ...")
-                sys.exit()
+                print(f"No dataset{i}.csv found in the output directory.")
+                continue
             print(f"##### Running experiments for dataset{i}.csv #####")
             learner = RankLibLearner(args)
             dataset_df = pd.read_csv(dataset_path)
             builds_count = dataset_df[Feature.BUILD].nunique()
             if builds_count <= args.test_count:
-                print(
-                    f"Not enough builds for training: require at least {args.test_count + 1}, found {builds_count}"
-                )
-                sys.exit()
-            results_path = args.output_path / "results"
-            learner.run_experiments(dataset_df, f"results{i}", results_path)
+                print(f"Not enough builds for training: require at least {args.test_count + 1}, found {builds_count}")
+                continue
+            results_path = args.output_path / "results" / f"results{i}"
+            builds_path = args.output_path / f"builds{i}.csv"
+            learner.run_experiments(dataset_df, results_path, builds_path)
+        # collect apfdc stats and write results
+        ExperimentsService.collect_stats(args.output_path / "results")

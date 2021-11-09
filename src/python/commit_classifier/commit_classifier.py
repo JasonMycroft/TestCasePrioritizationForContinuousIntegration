@@ -8,7 +8,7 @@ import _pickle as pickle
 from xgboost import XGBClassifier
 import sys
 
-nlp = spacy.load("en_core_web_sm")
+#nlp = spacy.load("en_core_web_sm")
 stemmer = SnowballStemmer("english")
 
 

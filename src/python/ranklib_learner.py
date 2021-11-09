@@ -37,14 +37,6 @@ class RankLibLearner:
         else:
             self.feature_id_map = {}
             self.next_fid = 1
-        builds_df = pd.read_csv(
-            config.output_path / "builds.csv", parse_dates=["started_at"]
-        )
-        self.build_time_d = dict(
-            zip(
-                builds_df["id"].values.tolist(), builds_df["started_at"].values.tolist()
-            )
-        )
 
     def get_feature_id(self, feature_name):
         if feature_name not in self.feature_id_map:
@@ -78,9 +70,17 @@ class RankLibLearner:
 
         return normalized_dataset, feature_dataset, scaler
 
-    def convert_to_ranklib_dataset(self, dataset, scaler=None):
+    def convert_to_ranklib_dataset(self, dataset, scaler=None, builds_path='builds.csv'):
         if dataset.empty:
             return None
+        builds_df = pd.read_csv(
+            self.config.output_path / builds_path, parse_dates=["started_at"]
+        )
+        self.build_time_d = dict(
+            zip(
+                builds_df["id"].values.tolist(), builds_df["started_at"].values.tolist()
+            )
+        )
         dataset = dataset.copy()
         dataset[Feature.VERDICT] = dataset[Feature.VERDICT].apply(lambda v: int(v > 0))
         normalized_dataset, feature_dataset, _ = self.normalize_dataset(dataset, scaler)
@@ -123,7 +123,7 @@ class RankLibLearner:
             + [f"f{i+1}" for i in range(len(feature_dataset.columns))]
             + ["hashtag", "i_target", "i_verdict", "i_duration", "i_test", "i_build"]
         )
-        self.save_feature_id_map()
+        #self.save_feature_id_map()
         return pd.DataFrame(ranklib_ds_rows, columns=headers)
 
     def create_ranklib_training_sets(self, ranklib_ds, output_path):
@@ -403,7 +403,8 @@ class RankLibLearner:
             pred_path = build_ds_path / "pred.txt"
 
             if not model_path.exists():
-                train_command = f"java -jar {ranklib_path} -train {train_path} -ranker 0 -save {model_path} -tree 30 -silent"
+                params = str(self.config.params.replace("--", "-"))
+                train_command = f"java -jar {ranklib_path} -train {train_path} -ranker {self.config.ranker} -save {model_path} {params} -silent"
                 train_out = subprocess.run(
                     train_command, shell=True, capture_output=True
                 )
@@ -440,9 +441,8 @@ class RankLibLearner:
         results_df.drop("build_time", axis=1, inplace=True)
         return results_df
 
-        def run_experiments(self, dataset_df, name, results_path):
-            ranklib_ds = self.convert_to_ranklib_dataset(dataset_df)
-            traning_sets_path = results_path / name
-            self.create_ranklib_training_sets(ranklib_ds, traning_sets_path)
-            results = self.train(traning_sets_path)
-            results.to_csv(traning_sets_path / "results.csv", index=False)
+    def run_experiments(self, dataset_df, training_sets_path, builds_path):
+        ranklib_ds = self.convert_to_ranklib_dataset(dataset_df, builds_path = builds_path)
+        self.create_ranklib_training_sets(ranklib_ds, training_sets_path)
+        results = self.train(training_sets_path)
+        results.to_csv(training_sets_path / "results.csv", index=False)
