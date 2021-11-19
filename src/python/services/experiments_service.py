@@ -208,9 +208,10 @@ class ExperimentsService:
             print(f"##### Running experiments for dataset{i}.csv #####")
             learner = RankLibLearner(args)
             dataset_df = pd.read_csv(dataset_path)
+            builds_for_training = 10
             builds_count = dataset_df[Feature.BUILD].nunique()
-            if builds_count <= args.test_count:
-                print(f"Not enough builds for training: require at least {args.test_count + 1}, found {builds_count}")
+            if builds_count <= builds_for_training:
+                print(f"Not enough builds for training: require at least {builds_for_training + 1}, found {builds_count}")
                 continue
             results_path = args.output_path / "results" / f"results{i}"
             builds_path = args.output_path / f"builds{i}.csv"

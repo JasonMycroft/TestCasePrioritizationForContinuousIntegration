@@ -127,13 +127,13 @@ class RankLibLearner:
         return pd.DataFrame(ranklib_ds_rows, columns=headers)
 
     def create_ranklib_training_sets(self, ranklib_ds, output_path):
+        builds_for_training = 10
         builds = ranklib_ds["i_build"].unique().tolist()
         builds.sort(key=lambda b: self.build_time_d[b])
-        test_builds = set(builds[-self.config.test_count :])
         for i, build in tqdm(list(enumerate(builds)), desc="Creating training sets"):
-            if build not in test_builds:
+            if i < builds_for_training:
                 continue
-            train_ds = ranklib_ds[ranklib_ds["i_build"].isin(builds[:i])]
+            train_ds = ranklib_ds[ranklib_ds["i_build"].isin(builds[i-builds_for_training:i])]
             if len(train_ds) == 0:
                 continue
             test_ds = ranklib_ds[ranklib_ds["i_build"] == build]
