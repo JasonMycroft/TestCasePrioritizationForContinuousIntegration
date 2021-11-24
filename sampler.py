@@ -18,7 +18,7 @@ def randOversampling(data_df):
     majority = data['Verdict'].value_counts(ascending=False)[0]
     # print(majority)
     oversample = RandomOverSampler(
-        sampling_strategy=0.40)
+        sampling_strategy=0.50)
     X_resampled, y_resampled = oversample.fit_resample(data.drop(['Verdict'], axis=1), data['Verdict'])
     data_oversampled = pd.concat([pd.DataFrame(X_resampled), pd.DataFrame(y_resampled)], axis=1)
     data_oversampled = data_oversampled.reindex(columns=data.columns.values.tolist())
@@ -39,7 +39,7 @@ def smoteOversampling(data_df):
     #print(data['Verdict'].value_counts())
     #majority = data['Verdict'].value_counts(ascending=False)[0]
     # print(majority)
-    oversample = SMOTE(random_state=42, sampling_strategy=0.40)
+    oversample = SMOTE(random_state=42, sampling_strategy=0.50)
     X_resampled, y_resampled = oversample.fit_resample(data.drop(['Verdict'], axis=1), data['Verdict'])
     data_oversampled = pd.concat([pd.DataFrame(X_resampled), pd.DataFrame(y_resampled)], axis=1)
     data_oversampled = data_oversampled.reindex(columns=data.columns.values.tolist())
@@ -81,7 +81,7 @@ def adasynSampling(data_df):
     #majority = data['Verdict'].value_counts(ascending=False)[0]
     # print(majority)
     oversample = ADASYN(random_state=42, n_neighbors=5,
-                       sampling_strategy=0.40)
+                       sampling_strategy=0.50)
     X_resampled, y_resampled = oversample.fit_resample(data.drop(['Verdict'], axis=1), data['Verdict'])
     data_oversampled = pd.concat([pd.DataFrame(X_resampled), pd.DataFrame(y_resampled)], axis=1)
     data_oversampled = data_oversampled.reindex(columns=data.columns.values.tolist())
