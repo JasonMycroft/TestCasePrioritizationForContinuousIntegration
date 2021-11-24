@@ -220,6 +220,13 @@ def main():
         type=str,
         default='',
     )
+    train_parser.add_argument(
+        "-s",
+        "--sampler",
+        help="Specifies the parameters for the ranker.",
+        type=int,
+        default=0,
+    )
 
     args = parser.parse_args()
     args.output_path.mkdir(parents=True, exist_ok=True)
