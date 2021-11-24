@@ -463,6 +463,8 @@ class RankLibLearner:
             elif sampler_num == 4:
                 train_unconv = adasynSampling(temp_df)
             train_ds = self.convert_to_ranklib_dataset(train_unconv,builds_path=builds_path)
+            for j, bld in list(enumerate(builds,start=1)):
+                train_ds.loc[train_ds.i_build == bld, 'qid'] = f"qid:{j}"
             if len(train_ds) == 0:
                 continue
             test_ds = temp_builds[temp_builds["i_build"] == build]
