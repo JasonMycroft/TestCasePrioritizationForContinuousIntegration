@@ -215,6 +215,6 @@ class ExperimentsService:
                 continue
             results_path = args.output_path / "results" / f"results{i}"
             builds_path = args.output_path / f"builds{i}.csv"
-            learner.run_experiments(dataset_df, results_path, builds_path)
+            learner.run_experiments(dataset_df, results_path, builds_path, args.sampler)
         # collect apfdc stats and write results
         ExperimentsService.collect_stats(args.output_path / "results")
