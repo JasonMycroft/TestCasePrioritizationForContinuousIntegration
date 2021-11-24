@@ -8,6 +8,7 @@ from tqdm import tqdm
 import sys
 import re
 import os
+from sampler import *
 
 
 class RankLibLearner:
@@ -441,8 +442,51 @@ class RankLibLearner:
         results_df.drop("build_time", axis=1, inplace=True)
         return results_df
 
-    def run_experiments(self, dataset_df, training_sets_path, builds_path):
-        ranklib_ds = self.convert_to_ranklib_dataset(dataset_df, builds_path = builds_path)
-        self.create_ranklib_training_sets(ranklib_ds, training_sets_path)
+    def create_training_sets(self, dataset_df, builds_path, output_path, sampler_num=0):
+        ranklib_ds = pd.DataFrame(dataset_df)
+        builds_for_training = 10
+        temp_builds = self.convert_to_ranklib_dataset(ranklib_ds,builds_path=builds_path)
+        builds = temp_builds["i_build"].unique().tolist()
+        builds.sort(key=lambda b: self.build_time_d[b])
+        for i, build in tqdm(list(enumerate(builds)), desc="Creating training sets"):
+            if i < builds_for_training:
+                continue
+            temp_df = ranklib_ds[ranklib_ds["Build"].isin(builds[i - builds_for_training:i])]
+            if sampler_num == 0:
+                train_unconv = temp_df
+            elif sampler_num == 1:
+                train_unconv = randOversampling(temp_df)
+            elif sampler_num == 2:
+                train_unconv = smoteOversampling(temp_df)
+            elif sampler_num == 3:
+                train_unconv = nearMiss(temp_df)
+            elif sampler_num == 4:
+                train_unconv = adasynSampling(temp_df)
+            train_ds = self.convert_to_ranklib_dataset(train_unconv,builds_path=builds_path)
+            if len(train_ds) == 0:
+                continue
+            test_ds = temp_builds[temp_builds["i_build"] == build]
+            build_out_path = output_path / str(build)
+            build_out_path.mkdir(parents=True, exist_ok=True)
+            if (
+                    not (output_path / str(build) / "train.txt").exists()
+                    and not (output_path / str(build) / "model.txt").exists()
+            ):
+                train_ds.to_csv(
+                    output_path / str(build) / "train.txt",
+                    sep=" ",
+                    header=False,
+                    index=False,
+                )
+            if not (output_path / str(build) / "test.txt").exists():
+                test_ds.to_csv(
+                    output_path / str(build) / "test.txt",
+                    sep=" ",
+                    header=False,
+                    index=False,
+                )
+
+    def run_experiments(self, dataset_df, training_sets_path, builds_path, sampler_num):
+        self.create_training_sets(dataset_df, builds_path, training_sets_path, sampler_num)
         results = self.train(training_sets_path)
         results.to_csv(training_sets_path / "results.csv", index=False)
