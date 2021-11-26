@@ -443,26 +443,25 @@ class RankLibLearner:
         return results_df
 
     def create_training_sets(self, dataset_df, builds_path, output_path, sampler_num=0):
-        ranklib_ds = pd.DataFrame(dataset_df)
+        if sampler_num == 0:
+            unconverted = pd.DataFrame(dataset_df)
+        elif sampler_num == 1:
+            unconverted = randOversampling(pd.DataFrame(dataset_df))
+        elif sampler_num == 2:
+            unconverted = smoteOversampling(pd.DataFrame(dataset_df))
+        elif sampler_num == 3:
+            unconverted = nearMiss(pd.DataFrame(dataset_df))
+        elif sampler_num == 4:
+            unconverted = adasynSampling(pd.DataFrame(dataset_df))
+        ranklib_ds = self.convert_to_ranklib_dataset(unconverted, builds_path=builds_path)
         builds_for_training = 10
-        temp_builds = self.convert_to_ranklib_dataset(ranklib_ds,builds_path=builds_path)
+        temp_builds = self.convert_to_ranklib_dataset(dataset_df, builds_path=builds_path)
         builds = temp_builds["i_build"].unique().tolist()
         builds.sort(key=lambda b: self.build_time_d[b])
         for i, build in tqdm(list(enumerate(builds)), desc="Creating training sets"):
             if i < builds_for_training:
                 continue
-            temp_df = ranklib_ds[ranklib_ds["Build"].isin(builds[i - builds_for_training:i])]
-            if sampler_num == 0:
-                train_unconv = temp_df
-            elif sampler_num == 1:
-                train_unconv = randOversampling(temp_df)
-            elif sampler_num == 2:
-                train_unconv = smoteOversampling(temp_df)
-            elif sampler_num == 3:
-                train_unconv = nearMiss(temp_df)
-            elif sampler_num == 4:
-                train_unconv = adasynSampling(temp_df)
-            train_ds = self.convert_to_ranklib_dataset(train_unconv,builds_path=builds_path)
+            train_ds = ranklib_ds[ranklib_ds["i_build"].isin(builds[i-builds_for_training:i])]
             if len(train_ds) == 0:
                 continue
             test_ds = temp_builds[temp_builds["i_build"] == build]
