@@ -266,10 +266,10 @@ class ExperimentsService:
         # do comparison
         result = {"method": [], "p-value": [], "CLES": []}
         for b in b_list:
-            z, p = wilcoxon(a, b[1])
-            clef = pg.compute_effsize(a, b[1], paired=True, eftype="CLES")
+            z, p = wilcoxon(b[1], a)
+            cles = pg.compute_effsize(b[1], a, paired=True, eftype="CLES")
             result["method"].append(b[0])
             result["p-value"].append(p)
-            result["CLES"].append(clef)
+            result["CLES"].append(cles)
         result_df = pd.DataFrame(result).sort_values("p-value", ignore_index=True)
         result_df.to_csv(out_path, index=False)
