@@ -9,7 +9,9 @@ from ..feature_extractor.feature import Feature
 from ..code_analyzer.code_analyzer import AnalysisLevel
 from ..results.results_analyzer import ResultAnalyzer
 import os
-
+from scipy.stats import wilcoxon
+import pingouin as pg
+import re
 
 class ExperimentsService:
     @staticmethod
@@ -218,3 +220,56 @@ class ExperimentsService:
             learner.run_experiments(dataset_df, results_path, builds_path)
         # collect apfdc stats and write results
         ExperimentsService.collect_stats(args.output_path / "results")
+
+    @staticmethod
+    def statistical_analysis(args):
+        a_path, b_path, out_path = args.A, args.B, args.output_path
+
+        # validate paths
+        if len({a_path, b_path, out_path}) != 3:
+            print('Expected 3 arguments with distinct values. Aborting.')
+            return
+        if not a_path.exists():
+            print(f'No file {a_path} found. Aborting.')
+            return
+        if not b_path.exists():
+            print(f'No file or directory {b_path} found. Aborting.')
+            return
+        if os.path.isfile(out_path):
+            print(f'Output file already exists. Aborting.')
+            return
+
+        # first file in comparison
+        a_filename = os.path.basename(a_path)
+        # omit last row since it's the average
+        a_df = pd.read_csv(a_path)[:-1]
+        a = a_df['mean_apfdc'].values
+
+        # second file(s) in comparison
+        if os.path.isfile(b_path) and b_path is not a_path:
+            files = [b_path]
+        else:
+            # fullpath of all csv in directory that are not first file in comparison
+            files = [b_path / f for f in os.listdir(b_path) if re.match(r'.*\.csv', f) and f != a_filename]
+        if len(files) == 0:
+            print('No files to compare. Aborting.')
+            return
+        b_list = []
+        for file in files:
+            # omit last row since it's the average
+            b_df = pd.read_csv(file)[:-1]
+            b = b_df['mean_apfdc'].values
+            b_filename = os.path.basename(file)
+            b_name = b_filename[0:b_filename.rfind('.')]
+            b_list.append([b_name, b])
+
+        # do comparison
+        result = {"method": [], "p-value": [], "CLES": []}
+        for b in b_list:
+            z, p = wilcoxon(a, b[1])
+            clef = pg.compute_effsize(a, b[1], paired=True, eftype="CLES")
+            result["method"].append(b[0])
+            result["p-value"].append(p)
+            result["CLES"].append(clef)
+        result_df = pd.DataFrame(result).sort_values("p-value", ignore_index=True)
+        result_df.to_csv(out_path, index=False)
