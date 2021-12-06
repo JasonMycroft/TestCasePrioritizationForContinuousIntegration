@@ -256,12 +256,14 @@ class ExperimentsService:
             return
         b_list = []
         for file in files:
-            # omit last row since it's the average
-            b_df = pd.read_csv(file)[:-1]
-            b = b_df['mean_apfdc'].values
-            b_filename = os.path.basename(file)
-            b_name = b_filename[0:b_filename.rfind('.')]
-            b_list.append([b_name, b])
+            filename = os.path.basename(file)
+            try:
+                # omit last row since it's the average
+                b_df = pd.read_csv(file)[:-1]
+                b = b_df['mean_apfdc'].values
+                b_list.append([filename[0:filename.rfind('.')], b])
+            except:
+                print(f"Error reading {filename}. Skipping.")
 
         # do comparison
         result = {"method": [], "p-value": [], "CLES": []}
