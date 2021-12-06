@@ -1,8 +1,9 @@
 import pandas as pd
 import os
-
+from pathlib import Path
 
 results_dir = "C:\\Users\\mycro\\Downloads\\datasets\\results" #results directory
+Path(results_dir).mkdir(parents=True, exist_ok=True)
 results_folders = os.listdir(results_dir)
 stats_df = pd.DataFrame()
 # gather apfdc info from each dataset
