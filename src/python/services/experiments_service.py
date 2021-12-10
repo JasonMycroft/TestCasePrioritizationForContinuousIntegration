@@ -243,7 +243,6 @@ class ExperimentsService:
         a_filename = os.path.basename(a_path)
         # omit last row since it's the average
         a_df = pd.read_csv(a_path)[:-1]
-        a = a_df['mean_apfdc'].values
 
         # second file(s) in comparison
         if os.path.isfile(b_path) and b_path is not a_path:
@@ -257,20 +256,23 @@ class ExperimentsService:
         b_list = []
         for file in files:
             filename = os.path.basename(file)
-            try:
-                # omit last row since it's the average
-                b_df = pd.read_csv(file)[:-1]
-                b = b_df['mean_apfdc'].values
-                b_list.append([filename[0:filename.rfind('.')], b])
-            except:
+            # omit last row since it's the average
+            b_df = pd.read_csv(file)[:-1]
+            if 'mean_apfdc' in b_df.columns:
+                b_list.append([filename[0:filename.rfind('.')], b_df])
+            else:
                 print(f"Error reading {filename}. Skipping.")
 
         # do comparison
         result = {"method": [], "p-value": [], "CLES": []}
-        for b in b_list:
-            z, p = wilcoxon(b[1], a)
-            cles = pg.compute_effsize(b[1], a, paired=True, eftype="CLES")
-            result["method"].append(b[0])
+        for b_item in b_list:
+            b_df = b_item[1]
+            b = b_df['mean_apfdc'].values
+            # drop rows from a where same dataset not in b
+            a = a_df.merge(b_df, on='dataset')['mean_apfdc_x'].values
+            z, p = wilcoxon(b, a)
+            cles = pg.compute_effsize(b, a, paired=True, eftype="CLES")
+            result["method"].append(b_item[0])
             result["p-value"].append(float("{:.3f}".format(p)))
             result["CLES"].append(float("{:.3f}".format(cles)))
         result_df = pd.DataFrame(result).sort_values("p-value", ignore_index=True)
