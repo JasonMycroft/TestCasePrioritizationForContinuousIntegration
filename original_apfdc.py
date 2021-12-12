@@ -17,6 +17,7 @@ def compute_apfdc(build):
 datasets_dir = "C:\\Users\\mycro\\Downloads\\datasets" # datasets directory
 results_dir = os.path.join(datasets_dir, "results") # results directory
 Path(results_dir).mkdir(parents=True, exist_ok=True)
+shuffle = False
 
 builds_for_training = 10
 i = 0
@@ -29,6 +30,10 @@ while i < 25:
     #print(f"##### Computing APFDc for dataset{i}.csv #####")
     results = {"build": [], "apfdc": []}
     dataset_df = pd.read_csv(dataset_path)[['Build', 'Verdict', 'Duration']]
+    # use original order or random order
+    if shuffle:
+        dataset_df = dataset_df.sample(frac=1)
+        dataset_df.sort_values("Build", ignore_index=True, inplace=True)
     build_ids = dataset_df['Build'].unique().tolist()
     builds = dict(tuple(dataset_df.groupby('Build')))
     # skip first 10 builds
