@@ -29,7 +29,7 @@ Parameters:\
 `-r`: Ranking algorithm used by RankLib ([0-8](https://sourceforge.net/p/lemur/wiki/RankLib%20How%20to%20use/)). [default 0]\
 `-p`: Parameters passed to ranking algorithm. Parameters must use double dashes instead of single dashes. [dafault none]\
 Example:\
-python main.py train -o "G:\Downloads\!datasets" -r 8 -p "--tc -1 --mls 10"
+python main.py train -o "G:\Downloads\datasets" -r 8 -p "--tc -1 --mls 10"
 
 To compare results of experiments, run `main.py results`.\
 Parameters:\
@@ -37,4 +37,4 @@ Parameters:\
 `-a`: The path to the baseline results for the comparison. Expected file format is that of `apfdc_stats.csv`.\
 `-b`: The path to the results for comparison. Expected file format is that of `apfdc_stats.csv`.\
 Example:\
-python main.py results -o "G:\Downloads\!datasets\!results\stat-analysis.csv" -a "G:\Downloads\!datasets\!results\baseline.csv" -b "G:\Downloads\!datasets\!results\MART.csv"
+python main.py results -o "G:\Downloads\datasets\results\stat-analysis.csv" -a "G:\Downloads\datasets\results\baseline.csv" -b "G:\Downloads\datasets\results\MART.csv"
