@@ -1,7 +1,7 @@
 # Test Case Prioritization Using Machine Learning in Continuous Integration
 
 ## Introduction
-This repository is based on prior work, who's code can be found [here](https://github.com/Ahmadreza-SY/TCP-CI) and publication found [here](https://arxiv.org/abs/2109.13168).
+This repository is based on prior work, who's code can be found [here](https://github.com/Ahmadreza-SY/TCP-CI) and publication found [here](https://arxiv.org/abs/2109.13168). More information about our project, including a demo and the report can be found [here](https://drive.google.com/drive/folders/1eoXWp7TvFGomp90p-Qgf2-7ojKPX52lm).
 
 ## Environment Setup
 ### Python Environment
