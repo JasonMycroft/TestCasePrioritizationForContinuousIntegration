@@ -23,9 +23,10 @@ def decay_test(args):
 
 
 def results(args):
-    ExperimentsService.analyze_results(args)
+    ExperimentsService.statistical_analysis(args)
 
 def train(args):
+    args.output_path.mkdir(parents=True, exist_ok=True)
     ExperimentsService.run_experiments(args)
 
 
@@ -190,6 +191,20 @@ def main():
         type=Path,
         default=".",
     )
+    results_parser.add_argument(
+        "-a",
+        "--A",
+        help="Specifies the spread sheet with the first measurement.",
+        type=Path,
+        default=".",
+    )
+    results_parser.add_argument(
+        "-b",
+        "--B",
+        help="Specifies the spread sheet or directory with the second measurement(s).",
+        type=Path,
+        default=".",
+    )
 
     train_parser.set_defaults(func=train)
     train_parser.add_argument(
@@ -229,7 +244,6 @@ def main():
     )
 
     args = parser.parse_args()
-    args.output_path.mkdir(parents=True, exist_ok=True)
     args.unique_separator = "\t"
     args.func(args)
 
