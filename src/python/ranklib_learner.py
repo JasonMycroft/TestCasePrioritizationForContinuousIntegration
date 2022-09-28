@@ -453,6 +453,12 @@ class RankLibLearner:
             unconverted = nearMiss(pd.DataFrame(dataset_df))
         elif sampler_num == 4:
             unconverted = adasynSampling(pd.DataFrame(dataset_df))
+        elif sampler_num == 5:
+            unconverted = randUndersampling(pd.DataFrame(dataset_df))
+        elif sampler_num == 6:
+            unconverted = smoteBorderline(pd.DataFrame(dataset_df))
+        elif sampler_num == 7:
+            unconverted = randOverUnder(pd.DataFrame(dataset_df))
         ranklib_ds = self.convert_to_ranklib_dataset(unconverted, builds_path=builds_path)
         builds_for_training = 10
         temp_builds = self.convert_to_ranklib_dataset(dataset_df, builds_path=builds_path)

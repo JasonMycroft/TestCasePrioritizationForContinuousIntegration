@@ -28,7 +28,7 @@ Parameters:\
 `-t`: Number of recent builds to use for training of each model. [default 10]\
 `-r`: Ranking algorithm used by RankLib ([0-8](https://sourceforge.net/p/lemur/wiki/RankLib%20How%20to%20use/)). [default 0]\
 `-p`: Parameters passed to ranking algorithm. Parameters must use double dashes instead of single dashes. [dafault none]\
-`-s`: Sampling method to be used on the test sets (0-4): none, random oversampling, SMOTE, near-miss undersampling, ADASYN. [default 0]\
+`-s`: Sampling method to be used on the test sets (0-7): none, random oversampling, SMOTE, near-miss undersampling, ADASYN, random undersampling, borderline SMOTE, random oversampling+undersampling. [default 0]\
 Example:\
 python main.py train -o "G:\Downloads\datasets" -r 8 -p "--tc -1 --mls 10" -s 1
 
